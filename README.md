@@ -11,12 +11,10 @@ This repository contains:
 
 ## Project Structure
 
-
 ├── backend/ # Model building and training code  
 ├── frontend/ # Interview Prep Tool  
 ├── scripts/ # Setup and utility scripts  
 ├── playground/ # Small sample Python files that show data fetching from RecruitView dataset
-
 
 ---
 
@@ -42,19 +40,28 @@ pip --version
 
 Run the following commands from the root directory of the project (note: when prompted to enter API Token, enter the one I sent in the chat):
 
+For Mac:
+
 ```bash
 chmod +x ./scripts/setup.sh   # Give execution permission to the setup script
 ./scripts/setup.sh            # Run the installation script
 ```
+
+For Windows:
+
+```bash
+.\scripts\setup-windows.ps1
+```
+
+(note: you may need to Open PowerShell as Administrator (or regular user) and allow scripts to run if it doesn't let you run for windows)
 
 ### 3. Running Python files
 
 Now, with the virtualenv activated, you should be able to run python files. Try by running the `playground/viewTranscript.py` by running this in the terminal
 
 ```
-python playground/viewTranscript.py 
+python playground/viewTranscript.py
 ```
-
 
 Notes:
 
