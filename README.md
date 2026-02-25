@@ -1,6 +1,6 @@
 # CSCI 566 – Course Project: DeepPrep AI
 
-DeepPrep AI is a group project for **CSCI 566 (Spring 2026)**.
+DeepPrep AI is our group project for **CSCI 566 (Spring 2026)**.
 
 This repository contains:
 
@@ -11,12 +11,12 @@ This repository contains:
 
 ## Project Structure
 
-.
+
 ├── backend/ # Model building and training code  
 ├── frontend/ # Interview Prep Tool  
 ├── scripts/ # Setup and utility scripts  
 ├── playground/ # Small sample Python files that show data fetching from RecruitView dataset
-└── README.md
+
 
 ---
 
@@ -49,11 +49,12 @@ chmod +x ./scripts/setup.sh   # Give execution permission to the setup script
 
 ### 3. Running Python files
 
-Now, with the virtualenv activated, you should be able to run python files. Try by running the `playground/viewTranscript.py` by running
+Now, with the virtualenv activated, you should be able to run python files. Try by running the `playground/viewTranscript.py` by running this in the terminal
 
 ```
-python playground/viewTranscript.py in the terminal
+python playground/viewTranscript.py 
 ```
+
 
 Notes:
 
