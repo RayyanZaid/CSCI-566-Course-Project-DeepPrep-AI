@@ -20,7 +20,7 @@ csci-566-project-venv-311/
 .ipynb_checkpoints/
 
 # Local model artifacts (too large for normal Git push)
-checkpoints/*.pt
+#checkpoints/*.pt
 
 # OS/editor noise
 .DS_Store
