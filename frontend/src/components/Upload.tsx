@@ -39,10 +39,12 @@ function UploadVideo() {
     formData.append("video", file);
 
     try {
-      const response = await fetch("http://localhost:5000/analyze", {
+      const response = await fetch("http://192.168.4.118:5000/analyze", {
         method: "POST",
         body: formData,
       });
+
+      console.log("Response status: ", response.status);
 
       if (!response.ok) {
         console.log("Response.ok: ", response.ok);
