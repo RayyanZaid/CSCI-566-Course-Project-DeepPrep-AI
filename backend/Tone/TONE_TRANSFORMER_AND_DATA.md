@@ -27,15 +27,15 @@ The same notebook saves a **binary pickle** payload so nothing is truncated:
 
 The payload includes (among others):
 
-| Key | Role |
-|-----|------|
-| `participant_id` | Aligns rows across modalities |
-| `personality_score` | Regression target |
-| `transcript_segments` | Text segments (list) |
-| `prosody_features` | Segment-aligned prosody (list of arrays) |
+| Key                     | Role                                                                        |
+| ----------------------- | --------------------------------------------------------------------------- |
+| `participant_id`        | Aligns rows across modalities                                               |
+| `overall_personality`   | Regression target                                                           |
+| `transcript_segments`   | Text segments (list)                                                        |
+| `prosody_features`      | Segment-aligned prosody (list of arrays)                                    |
 | `transcript_embeddings` | **Per-participant** `(n_segments, embed_dim)` embeddings used by `NN.ipynb` |
 
-`NN.ipynb` loads **`transcript_embeddings`** and **`personality_score`** from this PKL file so training uses **lossless** segment tensors, not CSV strings.
+`NN.ipynb` loads **`transcript_embeddings`** and **`overall_personality`** from this PKL file so training uses **lossless** segment tensors, not CSV strings.
 
 ---
 
@@ -63,9 +63,9 @@ The model treats each participant as a **sequence of segment embeddings** (same 
 
 The vector at the **CLS** position (`x[:, 0, :]`) is passed through:
 
-`LayerNorm → Linear(128 → 64) → GELU → Dropout → Linear(64 → 1)`  
+`LayerNorm → Linear(128 → 64) → GELU → Dropout → Linear(64 → 1)`
 
-Output is a **scalar per participant** (MSE against `personality_score`).
+Output is a **scalar per participant** (MSE against `overall_personality`).
 
 ---
 
@@ -73,13 +73,13 @@ Output is a **scalar per participant** (MSE against `personality_score`).
 
 Rough evolution of the training loop in `NN.ipynb`:
 
-| Idea | Purpose |
-|------|---------|
-| **AdamW** | Standard adaptive optimizer with decoupled weight decay. |
-| **Base learning rate** | Tuned over time (e.g. from `1e-3` down toward **`1e-4`** or lower); very small LRs (e.g. **`1e-6`**) may be used when exploring stability—**check the `LR = …` line in `NN.ipynb` for the value you are actually running.** |
-| **`ReduceLROnPlateau`** | Reduces LR when validation loss stops improving (mode `min`, factor `0.5`, patience `2`, `min_lr` floor). |
-| **Gradient clipping** (`max_norm = 1.0`) | Limits spike updates from individual batches. |
-| **Early stopping** | Stop if validation does not improve by at least **`MIN_DELTA`** for **`PATIENCE`** consecutive epochs **after** **`MIN_EPOCHS_BEFORE_STOP`**, to avoid stopping at epoch ~6 when epoch-1 validation is noisy. Best weights are restored from CPU. |
+| Idea                                     | Purpose                                                                                                                                                                                                                                           |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **AdamW**                                | Standard adaptive optimizer with decoupled weight decay.                                                                                                                                                                                          |
+| **Base learning rate**                   | Tuned over time (e.g. from `1e-3` down toward **`1e-4`** or lower); very small LRs (e.g. **`1e-6`**) may be used when exploring stability—**check the `LR = …` line in `NN.ipynb` for the value you are actually running.**                       |
+| **`ReduceLROnPlateau`**                  | Reduces LR when validation loss stops improving (mode `min`, factor `0.5`, patience `2`, `min_lr` floor).                                                                                                                                         |
+| **Gradient clipping** (`max_norm = 1.0`) | Limits spike updates from individual batches.                                                                                                                                                                                                     |
+| **Early stopping**                       | Stop if validation does not improve by at least **`MIN_DELTA`** for **`PATIENCE`** consecutive epochs **after** **`MIN_EPOCHS_BEFORE_STOP`**, to avoid stopping at epoch ~6 when epoch-1 validation is noisy. Best weights are restored from CPU. |
 
 This matches the spirit of a **coarse hyperparameter sweep**: try a few **learning rates** and **weight decay** values, train for a **small number of epochs** first to see loss behavior, then run longer with the stable region you find.
 
@@ -101,13 +101,13 @@ Course-style grids often try values such as **`1e-4`**, **`1e-5`**, and **`0`**;
 
 ## 5. File map
 
-| File | Role |
-|------|------|
-| `Audio_Embedding.ipynb` | Builds `table`, writes CSV + **`deep-prep-ai-audio-embeddings.pkl`**. |
+| File                                | Role                                                                                |
+| ----------------------------------- | ----------------------------------------------------------------------------------- |
+| `Audio_Embedding.ipynb`             | Builds `table`, writes CSV + **`deep-prep-ai-audio-embeddings.pkl`**.               |
 | `deep-prep-ai-audio-embeddings.csv` | Human-readable / spreadsheet-friendly; **not** reliable for full embedding tensors. |
-| `deep-prep-ai-audio-embeddings.pkl` | **Authoritative** store for arrays and training. |
-| `NN.ipynb` | Loads PKL, pads sequences, trains **`TransformerSeqRegressor`**. |
+| `deep-prep-ai-audio-embeddings.pkl` | **Authoritative** store for arrays and training.                                    |
+| `NN.ipynb`                          | Loads PKL, pads sequences, trains **`TransformerSeqRegressor`**.                    |
 
 ---
 
-*Last aligned with `NN.ipynb` and `Audio_Embedding.ipynb` in this repo; re-open those notebooks if hyperparameters drift.*
+_Last aligned with `NN.ipynb` and `Audio_Embedding.ipynb` in this repo; re-open those notebooks if hyperparameters drift._
