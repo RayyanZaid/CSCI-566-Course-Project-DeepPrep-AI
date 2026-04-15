@@ -1,8 +1,10 @@
+import json
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.responseGen import generate_response
+from backend.posture import analyze_posture_video
 import cv2
 import numpy as np
 
@@ -18,7 +20,8 @@ def processVideo(video_path):
     # Output: Scores and feedback 
     prosodyScore, prosodyFeedback = 0.8, "Prosody was good"
     facialGestureScore, eyeContactFeedback, CURRENT_GOOD_EYE_CNT_PCT = 1, "Eye contact was maintained", 0.7
-    postureScore, postureFeedback = 0.5, "Posture was not good, you should sit up straighter and avoid slouching. Try to keep your shoulders back and maintain an open posture to appear more confident and engaged during the interview."
+    postureResult = analyze_posture_video(video_path)
+    postureScore, postureFeedback = postureResult["score"], postureResult["feedback"]
 
     # Combine feedback from all analyses
     
@@ -38,9 +41,18 @@ def processVideo(video_path):
 
 
     # Generate summary of the feedback
+    fallback_summary = {
+        "Final Score": f"{finalScore * 100:.1f}%",
+        "Body Language and Posture Feedback": postureFeedback,
+        "Engagement (Eye Contact and Facial Expressions) Feedback": eyeContactFeedback,
+        "Interview Response Content Feedback": prosodyFeedback,
+    }
 
-    finalModelFeedback = "DO NOT WASTE ANY TOKENS, just return 'HI' for each of the 3 JSON values"
-    summary = generate_response(finalModelFeedback)
+    try:
+        summary = generate_response(finalModelFeedback)
+    except Exception as exc:
+        print(f"LLM summary unavailable, using local fallback. Reason: {exc}")
+        summary = json.dumps(fallback_summary)
 
     print("Summary of the interview:")
     print(summary)
