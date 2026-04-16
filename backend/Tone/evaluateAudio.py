@@ -201,9 +201,10 @@ def getInterviewResponseContentFeedback(audio_interview_score, audio_overall_per
 
     --- YOUR TASK ---
 
-    1. Start with a 2-3 sentence overall summary of this candidate's interview performance based 
-    on their interview_score and overall_personality. Give them the numbers and score them on a scale of 1 to 10 (10 being top-tier)
+    Note: For all scores - Give them the numbers and score them on a scale of 1 to 10 (10 being top-tier). Like convert the (0.55, 0.62, -0.60, etc) thresholds into a 1-10 scale and give them that score in your feedback so they know where they stand.
 
+    1. Start with a 2-3 sentence overall summary of this candidate's interview performance based 
+    on their interview_score and overall_personality. 
     2. Identify their TOP 2 strengths (highest scoring areas) and give specific, encouraging praise.
 
     3. Identify their TOP 2 areas for improvement (lowest scoring areas) and give concrete, 
