@@ -186,31 +186,24 @@ def _load_optional_model(model_path: str, scaler_path: str):
     import joblib
     import tensorflow as tf
 
-    model = tf.keras.models.load_model(model_path)
+    # Inference does not need the serialized training configuration, and
+    # loading legacy H5 files with compile=True can fail across Keras versions.
+    model = tf.keras.models.load_model(model_path, compile=False)
     scaler = joblib.load(scaler_path)
     return model, scaler
 
 
-def _recruitview_frame_count(video_clip: Any) -> int:
-    frame_count = getattr(video_clip, "_num_frames", None)
-    if frame_count is not None:
-        return int(frame_count)
-    try:
-        return len(video_clip)
-    except TypeError as exc:
-        raise ValueError("Could not determine RecruitView video frame count.") from exc
-
-
-def _recruitview_fps(video_clip: Any) -> float:
-    fps = getattr(video_clip, "_fps", None)
-    if fps is None or fps <= 0:
-        return 30.0
-    return float(fps)
-
-
-def _recruitview_frame_to_bgr(frame_obj: Any):
-    frame_rgb = frame_obj.data.permute(1, 2, 0).numpy()
-    return cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+def _recruitview_video_path(video_value: Any) -> str:
+    if isinstance(video_value, dict):
+        video_path = video_value.get("path")
+        if video_path:
+            return str(video_path)
+    if isinstance(video_value, str):
+        return video_value
+    raise ValueError(
+        "RecruitView sample does not expose a usable video path. "
+        "Load the dataset with video decoding disabled."
+    )
 
 
 def build_recruitview_posture_dataset(
@@ -220,9 +213,10 @@ def build_recruitview_posture_dataset(
     frame_stride: int = 15,
     model_path: str = DEFAULT_POSE_LANDMARKER_PATH,
 ):
-    from datasets import load_dataset
+    from datasets import Video, load_dataset
 
     dataset = load_dataset("AI4A-lab/RecruitView")
+    dataset = dataset.cast_column("video", Video(decode=False))
     samples = dataset[split]
     rows_written = 0
     samples_processed = 0
@@ -246,19 +240,36 @@ def build_recruitview_posture_dataset(
             ]
         )
 
-        with create_pose_landmarker(model_path=model_path) as pose_detector:
-            for sample in samples:
-                if max_samples is not None and samples_processed >= max_samples:
-                    break
+        for sample in samples:
+            if max_samples is not None and samples_processed >= max_samples:
+                break
 
-                label_info = compute_recruitview_weighted_label(sample)
-                official_label = label_info["official_label"]
-                video_clip = sample["video"]
-                fps = _recruitview_fps(video_clip)
-                frame_count = _recruitview_frame_count(video_clip)
+            label_info = compute_recruitview_weighted_label(sample)
+            official_label = label_info["official_label"]
+            video_path = _recruitview_video_path(sample["video"])
+            cap = cv2.VideoCapture(video_path)
+            if not cap.isOpened():
+                print(f"WARNING: Could not open RecruitView video, skipping: {video_path}")
+                samples_processed += 1
+                continue
 
-                for frame_index in range(0, frame_count, max(frame_stride, 1)):
-                    frame = _recruitview_frame_to_bgr(video_clip[frame_index])
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            if fps <= 0:
+                fps = 30.0
+
+            # Each clip is its own video stream, so we create a fresh
+            # landmarker per sample and let timestamps restart from zero.
+            with create_pose_landmarker(model_path=model_path) as pose_detector:
+                frame_index = 0
+                while cap.isOpened():
+                    ret, frame = cap.read()
+                    if not ret:
+                        break
+
+                    if frame_index % max(frame_stride, 1) != 0:
+                        frame_index += 1
+                        continue
+
                     landmarks = detect_video_pose_landmarks(
                         pose_detector,
                         frame,
@@ -266,10 +277,12 @@ def build_recruitview_posture_dataset(
                         fps,
                     )
                     if landmarks is None:
+                        frame_index += 1
                         continue
 
                     features = extract_features(landmarks)
                     if features is None:
+                        frame_index += 1
                         continue
 
                     head_tilt, shoulder_angle, z_diff = features
@@ -290,8 +303,11 @@ def build_recruitview_posture_dataset(
                         ]
                     )
                     rows_written += 1
+                    frame_index += 1
 
-                samples_processed += 1
+            cap.release()
+
+            samples_processed += 1
 
     print(
         f"RecruitView posture dataset built with {rows_written} rows from "

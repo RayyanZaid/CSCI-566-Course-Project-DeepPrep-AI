@@ -2,3 +2,14 @@ __pycache__/
 
 csci-566-project-venv-311/
 .env
+.DS_Store
+
+# Local Python environments
+venv/
+.venv/
+backend/Posture/venv/
+
+# Local datasets, videos, and generated training artifacts
+backend/Posture/videos/
+backend/Posture/posture_dataset.csv
+recruitview_posture_dataset.csv
