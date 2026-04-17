@@ -2,3 +2,15 @@ __pycache__/
 
 csci-566-project-venv-311/
 .env
+venv/
+__pycache__/
+*.pyc
+.env
+node_modules/
+uploads/
+*.pt
+*.pth
+*.mp4
+venv/
+node_modules/
+.env
