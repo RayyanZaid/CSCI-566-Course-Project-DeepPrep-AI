@@ -20,7 +20,9 @@ def processVideo(video_path):
     # Output: Scores and feedback 
 
     audio_interview_score, audio_overall_personality, audio_answer_score, audio_speaking_skills, audio_agreeableness, audio_conscientiousness, audio_neuroticism, audio_openness, audio_confidence_score = evaluateAudio(video_path)
-    eyeContactScore, facialAndEyeContactFeedback = run_inference(video_path)
+
+    facialExpressionAndEyeContactModelPath = "backend/FacialExpressionsAndEyeContact/eye_contact_expression_v1_best.pt"
+    eyeContactScore, facialAndEyeContactFeedback = run_inference(video_path, facialExpressionAndEyeContactModelPath)
     postureScore, postureFeedback = 0.5, "Posture was not good, you should sit up straighter and avoid slouching. Try to keep your shoulders back and maintain an open posture to appear more confident and engaged during the interview."
 
     # Combine feedback from all analyses
@@ -30,7 +32,17 @@ def processVideo(video_path):
     # This is the prompt for LLM
 
     # Final Score
-    finalScore = (1/3) * audio_interview_score + (1/3) * eyeContactScore + (1/3) * postureScore
+
+    # Scores are normalized from -1 to 1, we can to convert them to a 0 to 1 scale
+
+    def scale_neg1_to_1_to_0_to_10(x: float) -> float:
+        x = max(-1, min(1, x))
+        
+        return 5 * (x + 1)
+
+    
+    
+    finalScore = (1/3) * scale_neg1_to_1_to_0_to_10(audio_interview_score) + (1/3) * scale_neg1_to_1_to_0_to_10(eyeContactScore) + (1/3) * scale_neg1_to_1_to_0_to_10(postureScore)
 
     finalModelFeedback = (
        f"Your final score is: {finalScore*100}%\n\n\n"

@@ -18,7 +18,7 @@ import torch
 import numpy as np
 import cv2
 
-from backend.FacialExpressionsAndEyeContact.data_loader import FaceFeatureExtractor, VISUAL_TARGETS
+from backend.FacialExpressionsAndEyeContact.data_loader import FaceFeatureExtractor, TARGET_COLUMNS
 from backend.FacialExpressionsAndEyeContact.model import build_model
 
 # ── Human-readable descriptions for each target metric ───────────────────────
@@ -136,7 +136,7 @@ def run_inference(
     num_frames: int = 24,
     img_size: int = 224,
     device: str = "auto",
-) -> dict:
+):
     """
     Run the model on a video and return a structured report dict.
 
@@ -154,9 +154,9 @@ def run_inference(
 
     # Use target_cols and num_frames from the checkpoint unless explicitly overridden
     if target_cols is None:
-        target_cols = ckpt.get("target_cols", VISUAL_TARGETS)
+        target_cols = ckpt.get("target_cols", TARGET_COLUMNS)
         if not target_cols:
-            target_cols = VISUAL_TARGETS
+            target_cols = TARGET_COLUMNS
     saved_num_frames = ckpt.get("num_frames", num_frames)
     if num_frames == 24:  # user didn't override — use what the model was trained on
         num_frames = saved_num_frames
@@ -191,7 +191,7 @@ def run_inference(
         }
 
     # Eye contact proxy: average of gaze-related metrics
-    eye_contact_cols = ["confidence", "engagement", "professional_appearance"]
+    eye_contact_cols = ["confidence_score", "engagement", "professional_appearance"]
     eye_scores = [results[c]["score"] for c in eye_contact_cols if c in results]
     eye_contact_score = float(np.mean(eye_scores)) if eye_scores else None
 
@@ -202,38 +202,47 @@ def run_inference(
         "metrics": results,
     }
 
-    report = print(report) 
+    report = print_report(report) 
     return eye_contact_score, report
 
 
 def print_report(report: dict):
-    """Pretty-print the inference report to console."""
-    print("\n" + "=" * 65)
-    print("  INTERVIEW ANALYSIS REPORT — DeepPrep AI")
-    print("=" * 65)
+    """Return a pretty-printed inference report as a string."""
+
+    lines = []
+
+    lines.append("\n" + "=" * 65)
+    lines.append("  INTERVIEW ANALYSIS REPORT — DeepPrep AI")
+    lines.append("=" * 65)
 
     meta = report["metadata"]
-    print(f"  Video duration : {meta['duration_sec']:.1f}s")
-    print(f"  Face detection : {meta['face_detection_rate']:.0%} of sampled frames")
+    lines.append(f"  Video duration : {meta['duration_sec']:.1f}s")
+    lines.append(f"  Face detection : {meta['face_detection_rate']:.0%} of sampled frames")
 
     if report["eye_contact_score"] is not None:
         ec = report["eye_contact_score"]
         ec_grade, _ = score_to_grade(ec)
-        print(f"\n  👁  Eye Contact Score: {ec:.3f}  [{ec_grade}]")
+        lines.append(f"\n  👁  Eye Contact Score: {ec:.3f}  [{ec_grade}]")
 
-    print("\n  ─── Detailed Metrics ───────────────────────────────────")
+    lines.append("\n  ─── Detailed Metrics ───────────────────────────────────")
+
     for col, info in report["metrics"].items():
-        bar = "█" * max(0, int((info["score"] + 1.5) / 3.0 * 20))  # visual bar
-        print(f"\n  {info['description']}")
-        print(f"  Score: {info['score']:+.3f}  |  {info['grade']}")
-        print(f"  [{bar:<20}]")
-        print(f"  {info['feedback']}")
-        if info["tips"]:
-            print("  Tips:")
-            for tip in info["tips"]:
-                print(f"    • {tip}")
+        bar = "█" * max(0, int((info["score"] + 1.5) / 3.0 * 20))
 
-    print("\n" + "=" * 65)
+        lines.append(f"\n  {info['description']}")
+        lines.append(f"  Score: {info['score']:+.3f}  |  {info['grade']}")
+        lines.append(f"  [{bar:<20}]")
+        lines.append(f"  {info['feedback']}")
+
+        if info["tips"]:
+            lines.append("  Tips:")
+            for tip in info["tips"]:
+                lines.append(f"    • {tip}")
+
+    lines.append("\n" + "=" * 65)
+
+    printedReportString = "\n".join(lines)
+    return printedReportString
 
 
 def main():

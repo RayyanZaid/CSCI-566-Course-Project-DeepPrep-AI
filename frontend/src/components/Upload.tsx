@@ -39,7 +39,7 @@ function UploadVideo() {
     formData.append("video", file);
 
     try {
-      const response = await fetch("http://192.168.4.33:5000/analyze", {
+      const response = await fetch("http://192.168.4.30:5000/analyze", {
         method: "POST",
         body: formData,
       });
