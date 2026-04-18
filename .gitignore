@@ -1,3 +1,31 @@
+# Python cache/build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+csci-566-project-venv/
+csci-566-project-venv-311/
+
+# Notebook/checkpoint artifacts
+.ipynb_checkpoints/
+
+# Local model artifacts (too large for normal Git push)
+#checkpoints/*.pt
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/*.log
 __pycache__/
 
 csci-566-project-venv-311/
