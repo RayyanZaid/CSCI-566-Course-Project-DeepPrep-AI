@@ -1,0 +1,15 @@
+Normalize targets before training (per-label z-score), train on normalized y, then de-normalize predictions at inference; this alone often stabilizes multitask regression.
+
+Normalize prosody features using train-set stats only (mean/std over all train segments), then apply same stats to val/inference.
+
+Switch MSELoss to SmoothL1Loss (Huber) to reduce sensitivity to noisy labels/outliers.
+
+Use a smaller model if data is limited: try d_model=64, num_layers=1, dropout=0.1, weight_decay=1e-4 (current setup may be over-regularized/underfitting).
+
+Add an LR schedule (OneCycleLR or cosine decay with warmup) instead of fixed LR.
+
+Outputs were bad in Try #1 because:
+
+Negative predictions are possible because output is unconstrained and labels likely aren’t centered/scaled consistently.
+
+If labels are bounded (e.g., 1–5), training in normalized space + inverse transform at the end gives much more reasonable values.
