@@ -37,9 +37,9 @@ import torch.backends.cudnn as cudnn
 from torch.optim import AdamW
 from torch.amp import GradScaler, autocast
 
-from config import CFG, TrainConfig
-from data_loader import get_dataloaders
-from model import build_model
+from backend.FacialExpressionsAndEyeContact.config import CFG, TrainConfig
+from backend.FacialExpressionsAndEyeContact.data_loader import get_dataloaders
+from backend.FacialExpressionsAndEyeContact.model import build_model
 
 
 # ─────────────────────────────────────────────────────────────────────────────

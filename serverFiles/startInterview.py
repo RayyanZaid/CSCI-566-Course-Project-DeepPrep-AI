@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 
 from backend.Tone.evaluateAudio import evaluateAudio, getInterviewResponseContentFeedback
-
+from backend.FacialExpressionsAndEyeContact.inference import run_inference
 def processVideo(video_path):
     """
     Process the video file to extract frames and perform analysis.
@@ -20,7 +20,7 @@ def processVideo(video_path):
     # Output: Scores and feedback 
 
     audio_interview_score, audio_overall_personality, audio_answer_score, audio_speaking_skills, audio_agreeableness, audio_conscientiousness, audio_neuroticism, audio_openness, audio_confidence_score = evaluateAudio(video_path)
-    facialGestureScore, eyeContactFeedback, CURRENT_GOOD_EYE_CNT_PCT = 1, "Eye contact was maintained", 0.7
+    eyeContactScore, facialAndEyeContactFeedback = run_inference(video_path)
     postureScore, postureFeedback = 0.5, "Posture was not good, you should sit up straighter and avoid slouching. Try to keep your shoulders back and maintain an open posture to appear more confident and engaged during the interview."
 
     # Combine feedback from all analyses
@@ -30,12 +30,12 @@ def processVideo(video_path):
     # This is the prompt for LLM
 
     # Final Score
-    finalScore = (1/3) * audio_interview_score + (1/3) * facialGestureScore + (1/3) * postureScore
+    finalScore = (1/3) * audio_interview_score + (1/3) * eyeContactScore + (1/3) * postureScore
 
     finalModelFeedback = (
        f"Your final score is: {finalScore*100}%\n\n\n"
         f"Interview Response Content Feedback: {getInterviewResponseContentFeedback(audio_interview_score, audio_overall_personality, audio_answer_score, audio_speaking_skills, audio_agreeableness, audio_conscientiousness, audio_neuroticism, audio_openness, audio_confidence_score)}\n\n\n\n"
-        f"Engagement (Eye Contact and Facial Expressions) Feedback: EXAMPLE: For facial gestures, the interviewee scored a {facialGestureScore/1} Give feedback based on score. For eyeContact, if {eyeContactFeedback} is within 15 of {CURRENT_GOOD_EYE_CNT_PCT}, then the interviee is maintaing a good level of eye contact. Depending on whether they are too far above or below the range, give tips accordingly. To improve eye contact say things like to be more relaxed and comfortable. That it's okay to glance away when speaking or thinking, but make sure to look at them when listening and making important points. Things in that nature. If the {eyeContactFeedback} is within 15 of {CURRENT_GOOD_EYE_CNT_PCT}, then state that their eye contact maintence was good and no improvements are needed there. Make your response brief (2 sentences max) and natural, like a reviewer or teacher. \n\n\n\n"
+        f"Engagement (Eye Contact and Facial Expressions) Feedback: {facialAndEyeContactFeedback}\n\n\n\n"
         f"Body Language and Posture Feedback: EXAMPLE: If {postureScore} is lower than 0.6 than the interviee doesn't have good posture. Keep your analysis to 2 sentences. Here is some context feedback that could help with your analysis {postureFeedback}. All the scores here are normalized between 0 and 1 for different metrics of posture.")
         
 

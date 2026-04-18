@@ -18,8 +18,8 @@ import torch
 import numpy as np
 import cv2
 
-from data_loader import FaceFeatureExtractor, VISUAL_TARGETS
-from model import build_model
+from backend.FacialExpressionsAndEyeContact.data_loader import FaceFeatureExtractor, VISUAL_TARGETS
+from backend.FacialExpressionsAndEyeContact.model import build_model
 
 # ── Human-readable descriptions for each target metric ───────────────────────
 METRIC_DESCRIPTIONS = {
@@ -201,7 +201,9 @@ def run_inference(
         "eye_contact_score": eye_contact_score,
         "metrics": results,
     }
-    return report
+
+    report = print(report) 
+    return eye_contact_score, report
 
 
 def print_report(report: dict):

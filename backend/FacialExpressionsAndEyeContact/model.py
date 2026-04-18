@@ -24,7 +24,7 @@ import torch
 import torch.nn as nn
 from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
 
-from data_loader import FaceFeatureExtractor
+from backend.FacialExpressionsAndEyeContact.data_loader import FaceFeatureExtractor
 
 
 class SpatialEncoder(nn.Module):
@@ -228,7 +228,7 @@ def build_model(num_targets: int, cfg=None, freeze_backbone: bool = True) -> Int
 
 if __name__ == "__main__":
     # Sanity check
-    from data_loader import FaceFeatureExtractor
+    from backend.FacialExpressionsAndEyeContact.data_loader import FaceFeatureExtractor
     model = build_model(num_targets=5)
     B, T = 2, 24
     frames   = torch.randn(B, T, 3, 224, 224)
