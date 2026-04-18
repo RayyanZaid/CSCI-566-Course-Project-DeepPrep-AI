@@ -26,3 +26,7 @@ csci-566-project-venv-311/
 .DS_Store
 Thumbs.db
 .vscode/*.log
+__pycache__/
+
+csci-566-project-venv-311/
+.env
