@@ -1,9 +1,12 @@
-import { FaTrash as TrashIcon, FaUpload as UploadIcon } from "react-icons/fa";
 import { CSSProperties, useRef, useState } from "react";
+import { FaTrash as TrashIcon, FaUpload as UploadIcon } from "react-icons/fa";
 
 import InterviewImage from "../assets/InterviewImage.png";
 import Result from "./Result";
 import Spinner from "./Spinner";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "http://127.0.0.1:5000";
 
 const styles: Record<string, CSSProperties> = {
   submitButton: {
@@ -39,7 +42,7 @@ function UploadVideo() {
     formData.append("video", file);
 
     try {
-      const response = await fetch("http://192.168.4.30:5000/analyze", {
+      const response = await fetch(`${API_BASE_URL}/analyze`, {
         method: "POST",
         body: formData,
       });
@@ -47,20 +50,27 @@ function UploadVideo() {
       console.log("Response status: ", response.status);
 
       if (!response.ok) {
+        const errorBody = await response.text();
         console.log("Response.ok: ", response.ok);
         console.log("Error: ", response.statusText);
+        console.log("Error body: ", errorBody);
         throw new Error("Network response was not ok");
       }
 
       const data = await response.json();
-      const cleaned = data.result
-        .replace(/```json\n/, "") // remove ```json\n
-        .replace(/```/, "") // remove ```
-        .trim(); // extra spaces
+      const parsedResult =
+        typeof data.result === "string"
+          ? JSON.parse(
+              data.result
+                .replace(/```json\n/, "")
+                .replace(/```/, "")
+                .trim(),
+            )
+          : data.result;
 
-      setResult(JSON.parse(cleaned));
+      setResult(parsedResult);
 
-      console.log("Result: ", result);
+      console.log("Result: ", parsedResult);
       setStatus("success");
     } catch (err) {
       console.error(err);
