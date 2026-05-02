@@ -17,10 +17,6 @@ def processVideo(video_path):
 
     print(f"Processing video: {video_path}")
 
-    # These should be replaced by the actual analysis functions that return scores from the Neural Nets. 
-    # Input: "video_path"
-    # Output: Scores and feedback 
-
     audio_interview_score, audio_overall_personality, audio_answer_score, audio_speaking_skills, audio_agreeableness, audio_conscientiousness, audio_neuroticism, audio_openness, audio_confidence_score = evaluateAudio(video_path)
 
     facialExpressionAndEyeContactModelPath = "backend/FacialExpressionsAndEyeContact/eye_contact_expression_v1_best.pt"
@@ -29,19 +25,10 @@ def processVideo(video_path):
     postureScore, postureFeedback = postureResult["score"], postureResult["feedback"]
 
 
-    # Combine feedback from all analyses
     
-    # Concatenate feedback into a single string
-
-    # This is the prompt for LLM
-
-    # Final Score
-
-    # Scores are normalized from -1 to 1, we can to convert them to a 0 to 1 scale
 
     def scale_neg1_to_1_to_0_to_10(x: float) -> float:
         x = max(-1, min(1, x))
-        
         return 5 * (x + 1)
 
     

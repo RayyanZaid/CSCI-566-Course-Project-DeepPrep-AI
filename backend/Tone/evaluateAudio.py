@@ -35,21 +35,8 @@ def evaluateAudio(videoPath: str):
     # ----------------------------
 
 
-    # transcript_segments = transcribe_video_to_transcript_segments(videoPath, asr_model="openai/whisper-small")
-
-    # TODO: Remove hardcoded and uncomment above line
-    transcript_segments = {
-    "0:00 - 0:11": "I am a third year BTEC student from Manipal University, Jaipur currently majoring in CS,",
-    "0:11 - 0:13": "computer science.",
-    "0:13 - 0:18": "I am a tech enthusiast and I love to explore the domains of artificial intelligence and",
-    "0:18 - 0:19": "machine learning.",
-    "0:19 - 0:26": "I also have a sure interest in exploring the realm of blockchain and its decentralized",
-    "0:26 - 0:34": "apps with an interest of playing with softwares. My hobbies include dancing, reading, I am an",
-    "0:34 - 0:42": "avid reader and also exploring new places, meeting new people, their culture and their",
-    "0:42 - 0:42": "heritage.",
-    }
-
-
+    transcript_segments = transcribe_video_to_transcript_segments(videoPath, asr_model="openai/whisper-small")
+  
     segment_texts = list(transcript_segments.values())
 
 
