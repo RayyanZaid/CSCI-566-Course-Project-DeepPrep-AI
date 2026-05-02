@@ -57,19 +57,8 @@ def processVideo(video_path):
 
 
 
-    # Generate summary of the feedback
-    fallback_summary = {
-        "Final Score": f"{finalScore * 100:.1f}%",
-        "Body Language and Posture Feedback": postureFeedback,
-        "Engagement (Eye Contact and Facial Expressions) Feedback": eyeContactFeedback,
-        "Interview Response Content Feedback": prosodyFeedback,
-    }
+    summary = generate_response(finalModelFeedback)
 
-    try:
-        summary = generate_response(finalModelFeedback)
-    except Exception as exc:
-        print(f"LLM summary unavailable, using local fallback. Reason: {exc}")
-        summary = json.dumps(fallback_summary)
 
     print("Summary of the interview:")
     print(summary)
