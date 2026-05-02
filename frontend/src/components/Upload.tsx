@@ -61,7 +61,10 @@ function UploadVideo() {
       const parsedResult =
         typeof data.result === "string"
           ? JSON.parse(
-              data.result.replace(/```json\n/, "").replace(/```/, "").trim()
+              data.result
+                .replace(/```json\n/, "")
+                .replace(/```/, "")
+                .trim(),
             )
           : data.result;
 
